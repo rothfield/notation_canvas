@@ -1,48 +1,34 @@
-import { drawComposition } from "./canvas_renderer.js";
-import { saveCompositionDebounced } from "./io.js";
-import { composition, cursorIndexRef } from "./state.js";
-import { handleKeydown, handleClick } from "./editor_input.js";
+import { composition } from "./state.js";
+import { renderComposition } from "./canvas_renderer.js";
+import { handleClick } from "./input/handleClick.js";
+import { handleKeydown } from "./input/handleKeydown.js";
+import { loadComposition } from "./io.js";
 
-function updateAndRender() {
-  saveCompositionDebounced(composition);
-  renderComposition(composition);
-  updateParseTree(composition);
-}
+document.addEventListener("DOMContentLoaded", () => {
+  const canvas = document.getElementById("canvas");
+  const output = document.getElementById("data-model");
 
-function renderComposition(comp) {
-  const canvas = document.getElementById("notation-canvas");
-  const ctx = canvas.getContext("2d");
-
-  const paragraph = comp.paragraphs[0];
-  const tokens = paragraph.children.map(el => {
-    if (el.type === "note") return { value: el.pitch };
-    if (el.type === "space") return { value: " " };
-    if (el.type === "barline") return { value: "|" };
-    if (el.type === "dash") return { value: "-" };
-    return { value: "?" };
-  });
-
-  drawComposition(ctx, tokens, cursorIndexRef.value);
-}
-
-function updateParseTree(comp) {
-  const out = document.getElementById("output-content");
-  if (out) {
-    out.textContent = JSON.stringify(comp, null, 2);
+  if (!canvas || !output) {
+    console.error("Canvas or output element not found.");
+    return;
   }
-}
 
-window.addEventListener("DOMContentLoaded", () => {
-  const canvas = document.getElementById("notation-canvas");
+  function updateAndRender() {
+    console.log("updateAndRender called");
+    renderComposition(canvas, composition);
+    output.textContent = JSON.stringify(composition, null, 2);
+  }
+
+  canvas.addEventListener("mousedown", (event) =>
+    handleClick(event, composition, updateAndRender)
+  );
+
+  canvas.addEventListener("keydown", (event) =>
+    handleKeydown(event, composition, updateAndRender)
+  );
+
   canvas.setAttribute("tabindex", "0");
   canvas.focus();
-
-  canvas.addEventListener("keydown", e =>
-    handleKeydown(e, composition, cursorIndexRef, updateAndRender)
-  );
-  canvas.addEventListener("click", e =>
-    handleClick(e, composition, cursorIndexRef, updateAndRender)
-  );
 
   updateAndRender();
 });

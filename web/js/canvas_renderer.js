@@ -1,78 +1,68 @@
-export function drawComposition(ctx, tokens, cursorIndex) {
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  ctx.font = '20px sans-serif';
-  ctx.textBaseline = 'top';
+import { composition } from "./state.js";
 
-  const lineHeight = 40;
-  const padding = 10;
-  const maxWidth = ctx.canvas.width - padding * 2;
+export function renderComposition(canvas, composition) {
+  const ctx = canvas.getContext("2d");
+  console.log("Rendering composition:", composition);
+  ctx.fillStyle = "yellow";
+  ctx.fillRect(0, 0, 10, 10);
 
-  let x = padding;
-  let y = padding;
-  let index = 0;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = "20px sans-serif";
 
-  const beats = [];
-  let currentBeat = [];
+  const xOffset = 10;
+  const yOffset = 50;
+  let x = xOffset;
 
-  for (const token of tokens) {
-    if (token.value === ' ') {
-      if (currentBeat.length > 0) {
-        beats.push(currentBeat);
-        currentBeat = [];
+  const tokens = composition.paragraphs[0].children;
+  const { cursorIndex, selection } = composition;
+
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    const value = token.pitch || token.value || "";
+    if (typeof value !== "string") continue;
+
+    const width = ctx.measureText(value).width + 4;
+
+    if (selection && selection.start !== null && selection.end !== null) {
+      const selStart = Math.min(selection.start, selection.end);
+      const selEnd = Math.max(selection.start, selection.end);
+      if (i >= selStart && i <= selEnd) {
+        ctx.fillStyle = "#d0eaff";
+        ctx.fillRect(x - 2, yOffset - 16, width, 24);
       }
-    } else {
-      currentBeat.push(token);
-    }
-  }
-  if (currentBeat.length > 0) {
-    beats.push(currentBeat);
-  }
-
-  for (const beat of beats) {
-    const beatStartX = x;
-    let beatEndX = x;
-    let beatHasContent = false;
-    let tokenCount = 0;
-
-    for (const token of beat) {
-      const value = token.value;
-      const width = ctx.measureText(value).width;
-
-      // Wrap line if needed
-      if (x + width > maxWidth) {
-        x = padding;
-        y += lineHeight;
-      }
-
-      ctx.fillText(value, x, y);
-
-      if (index === cursorIndex) {
-        ctx.fillRect(x - 1, y - 2, 2, 24);
-      }
-
-      x += width;
-      beatEndX = x;
-      index++;
-      tokenCount++;
     }
 
-    // Draw loop (arc) under beat if it has multiple tokens
-    if (tokenCount > 1) {
-      const midX = (beatStartX + beatEndX) / 2;
-      const arcHeight = 10;
+    ctx.fillStyle = "black";
+    ctx.fillText(value, x, yOffset);
+    console.log("Rendering token:", token, "value=", value);
+
+    ctx.strokeStyle = "rgba(255, 0, 0, 0.3)";
+    ctx.strokeRect(x, yOffset - 15, width, 20);
+
+    token.x = x;
+    token.y = yOffset - 15;
+    token.width = width;
+    token.height = 20;
+
+    if (cursorIndex === i) {
       ctx.beginPath();
-      ctx.moveTo(beatStartX, y + 26);
-      ctx.quadraticCurveTo(midX, y + 26 + arcHeight, beatEndX, y + 26);
-      ctx.strokeStyle = "black";
+      ctx.moveTo(x - 1, yOffset - 16);
+      ctx.lineTo(x - 1, yOffset + 8);
+      ctx.strokeStyle = "red";
       ctx.lineWidth = 1;
       ctx.stroke();
     }
 
-    x += ctx.measureText(' ').width;
-    index++;
-  }
+    x += width;
 
-  if (index === cursorIndex) {
-    ctx.fillRect(x - 1, y - 2, 2, 24);
+  // Draw cursor if it's at the end of the line
+  if (cursorIndex === tokens.length) {
+    ctx.beginPath();
+    ctx.moveTo(x - 1, yOffset - 16);
+    ctx.lineTo(x - 1, yOffset + 8);
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
   }
 }

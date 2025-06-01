@@ -1,0 +1,26 @@
+canvas.addEventListener("click", (event) => {
+	const canvasRect = canvas.getBoundingClientRect();
+	const clickX = event.clientX - canvasRect.left;
+
+	// Compute new cursor index based on token spacing
+	const ctx = canvas.getContext("2d");
+	ctx.font = '20px sans-serif';
+
+	const paragraph = composition.paragraphs[0];
+	let x = 10;
+	cursorIndex = 0;
+
+	for (let i = 0; i < paragraph.children.length; i++) {
+		const el = paragraph.children[i];
+		const width = ctx.measureText(el.pitch || el.value || "?").width + 4;
+
+		if (clickX < x + width / 2) {
+			break;
+		}
+
+		x += width;
+		cursorIndex++;
+	}
+	canvas.focus();
+	updateAndRender();
+});

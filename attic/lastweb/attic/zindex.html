@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Konva Typing and Loop Demo</title>
+  <script src="https://unpkg.com/konva@9.2.0/konva.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    #container {
+      background: #fafafa;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  <script>
+    const width = window.innerWidth;
+    const height = 400;
+
+    const stage = new Konva.Stage({
+      container: 'container',
+      width: width,
+      height: height,
+    });
+
+    const layer = new Konva.Layer();
+    stage.add(layer);
+
+    function drawNote(x, y, label, lyric) {
+      const group = new Konva.Group({ x, y, draggable: true });
+
+      const circle = new Konva.Circle({
+        x: 0,
+        y: 0,
+        radius: 20,
+        fill: 'black'
+      });
+
+      const pitch = new Konva.Text({
+        x: -6,
+        y: -8,
+        text: label,
+        fontSize: 16,
+        fill: 'white',
+        fontFamily: 'Arial',
+        name: 'pitch'
+      });
+
+      const lyricText = new Konva.Text({
+        x: -10,
+        y: 30,
+        text: lyric || 'lyric',
+        fontSize: 14,
+        fontFamily: 'Georgia',
+        name: 'lyric'
+      });
+
+      group.add(circle);
+      group.add(pitch);
+      group.add(lyricText);
+      layer.add(group);
+
+      // Add editable lyric
+      lyricText.on('dblclick', () => {
+        const absPos = lyricText.getAbsolutePosition();
+        const input = document.createElement('input');
+        document.body.appendChild(input);
+        input.value = lyricText.text();
+        input.style.position = 'absolute';
+        input.style.top = absPos.y + 'px';
+        input.style.left = absPos.x + 'px';
+        input.style.fontSize = '16px';
+        input.focus();
+
+        input.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            lyricText.text(input.value);
+            layer.draw();
+            document.body.removeChild(input);
+          }
+        });
+      });
+
+      return group;
+    }
+
+    function drawLoop(x1, y1, x2, y2) {
+      return new Konva.Line({
+        points: [x1, y1, (x1 + x2)/2, y1 - 40, x2, y2],
+        stroke: 'black',
+        strokeWidth: 2,
+        bezier: true
+      });
+    }
+
+    const note1 = drawNote(100, 200, 'S', 'sa');
+    const note2 = drawNote(200, 200, 'R', 're');
+    const loop = drawLoop(note1.x() + 100, 200, note2.x() + 100, 200);
+    layer.add(loop);
+
+    // Keep loop synced
+    function updateLoop() {
+      const p1 = note1.getAbsolutePosition();
+      const p2 = note2.getAbsolutePosition();
+      loop.points([p1.x, p1.y, (p1.x + p2.x)/2, p1.y - 40, p2.x, p2.y]);
+      layer.batchDraw();
+    }
+
+    note1.on('dragmove', updateLoop);
+    note2.on('dragmove', updateLoop);
+
+    layer.draw();
+  </script>
+</body>
+</html>

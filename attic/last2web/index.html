@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Letter Notation Parser</title>
+		<link rel="stylesheet" href="styles.css?v=1748537421x">
+		<link rel="stylesheet" href="composition.css?v=1748537421x">
+		<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+	</head>
+	<body>
+		<div class="container">
+			<h1>Letter Notation Parser</h1>
+
+			<div id="connection-status">Connected</div>
+
+			<textarea id="editor" placeholder="Type your letter notation here..."></textarea>
+
+			<div id="sections">
+				<div class="section">
+					<h2>Rendered Notation</h2>
+					<div id="html-output" class="composition"></div>
+				</div>
+				<div class="section">
+					<h2>HTML</h2>
+					<pre id="html-raw" class="output"></pre>
+				</div>
+
+				<div class="section">
+					<h2>Parse Tree Structure</h2>
+					<pre id="output-content" class="output"></pre>
+				</div>
+
+				<div class="section">
+					<h2>LilyPond Source Code</h2>
+					<pre id="lilypond-content" class="output"></pre>
+				</div>
+
+				<div class="section">
+					<h2>Staff Notation (SVG)</h2>
+					<div id="svg-container" class="svg-output"></div>
+				</div>
+			</div>
+		</div>
+		<script type="module" src="canvas_renderer.js?v=11748545376"></script>
+		<script type="module" src="lexer.js?v=11748545376"></script>
+		<script type="module" src="io.js?v=11748545376"></script>
+		<script type="module" src="main.js?v=11748545376"></script>
+		<script src="canvas_renderer.js?v=11748545376"></script>
+	</body>
+</html>
+

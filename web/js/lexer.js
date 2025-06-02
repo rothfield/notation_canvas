@@ -1,14 +1,15 @@
 export const TokenType = {
-  Pitch: 'Pitch',
-  Dash: 'Dash',
-  LeftSlur: 'LeftSlur',
-  RightSlur: 'RightSlur',
-  Space: 'Space',
-  Barline: 'Barline',
-  Unknown: 'Unknown'
+  Pitch: 'pitch',
+  Dash: 'dash',
+  LeftSlur: 'leftSlur',
+  RightSlur: 'rightSlur',
+  Space: 'space',
+  Barline: 'barline',
+  Unknown: 'unknown'
 };
 
 export function lexElement(char, index = 0) {
+  console.log("lexelement char=",char)
   if (char === 's') char = 'S';
   if (char === 'p') char = 'P';
 
@@ -43,16 +44,20 @@ export function lexElement(char, index = 0) {
 }
 
 export function parseElement(token) {
+  if (token.type ==="unknown")
+    return null;
+
   switch (token.type) {
     case TokenType.Pitch:
-      return { type: "note", pitch: token.value };
-    case TokenType.Space:
-      return { type: "space" };
-    case TokenType.Dash:
-      return { type: "dash" };
-    case TokenType.Barline:
-      return { type: "barline" };
+      return {
+        type: "note",
+        pitch: token.value,
+        octave: 0,
+        text: token.value,
+      };
     default:
-      return null;
+      return { type: token.type, text: token.value };
   }
 }
+
+

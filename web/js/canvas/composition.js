@@ -1,4 +1,42 @@
-import { blink } from "./state.js";
+import { blink } from "../state.js";
+
+
+function drawUpperOctaveDot(ctx, centerX, yOffset, token) {
+  const dot = "•";
+  const dotWidth = ctx.measureText(dot).width;
+  const metrics = ctx.measureText(token.text);
+  const ascent = metrics.actualBoundingBoxAscent || 0;
+  const dotX = centerX - dotWidth / 2;
+  const dotY = yOffset - ascent - 1;  // dot sits just above the top of the character
+  ctx.fillText(dot, dotX, dotY);
+}
+
+function zzdrawLowerOctaveDot(ctx, centerX, yOffset, token) {
+  const dot = "•";
+  const dotWidth = ctx.measureText(dot).width;
+  const metrics = ctx.measureText(token.text);
+  const ascent = metrics.actualBoundingBoxAscent || 0;
+  const dotX = centerX - dotWidth / 2;
+  const dotY = yOffset + ascent + 1 - dotWidth;  // dot sits just above the top of the character
+  ctx.fillText(dot, dotX, dotY);
+}
+
+
+function drawLowerOctaveDot(ctx, centerX, yOffset, token) {
+  const dot = "•";
+  const dotWidth = ctx.measureText(dot).width;
+
+  const metrics = ctx.measureText(token.text);
+  const ascent = metrics.actualBoundingBoxAscent || 0;
+  const descent = metrics.actualBoundingBoxDescent || 0;
+
+  const dotX = centerX - dotWidth / 2;
+  const dotY = yOffset + descent + 1 + dotWidth;  // dot sits just below the bounding box
+
+  ctx.fillText(dot, dotX, dotY);
+}
+
+
 
 // Utility to read CSS variable as string or number
 function getCSSValue(propName) {
@@ -12,7 +50,7 @@ export function renderComposition(canvas, composition) {
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-//  const canvasFont = getCSSValue("--canvas-font");
+  //  const canvasFont = getCSSValue("--canvas-font");
   const lyricFont = getCSSValue("--lyric-font");
   const titleFont = getCSSValue("--title-font");
   const composerFont = getCSSValue("--composer-font");
@@ -20,7 +58,7 @@ export function renderComposition(canvas, composition) {
   .getPropertyValue("--canvas-font")
   .trim();
 
-ctx.font = canvasFont;
+  ctx.font = canvasFont;
 
   const sampleMetrics = ctx.measureText("M");
   const ascent = sampleMetrics.actualBoundingBoxAscent || 15;
@@ -54,9 +92,9 @@ ctx.font = canvasFont;
     const height = tokenAscent + tokenDescent;
 
     const isSelected = selection?.start !== null &&
-                       selection?.end !== null &&
-                       i >= Math.min(selection.start, selection.end) &&
-                       i < Math.max(selection.start, selection.end);
+      selection?.end !== null &&
+      i >= Math.min(selection.start, selection.end) &&
+      i < Math.max(selection.start, selection.end);
 
     ctx.fillStyle = isSelected ? "white" : "black";
     if (isSelected) {
@@ -78,20 +116,13 @@ ctx.font = canvasFont;
     const pitchWidth = width;
 
     if (token.octave === 1) {
-      const dot = "•";
-      const dotWidth = ctx.measureText(dot).width;
-      const dotX = x + (pitchWidth - dotWidth) / 2;
-      ctx.fillText(dot, dotX, yOffset - tokenAscent - tokenAscent * dotAbove);
+      const centerX = x + ctx.measureText(token.text).width / 2;
+      drawUpperOctaveDot(ctx, centerX, yOffset,token);
     }
 
     if (token.octave === -1) {
-      const dot = "•";
-      const dotWidth = ctx.measureText(dot).width;
-      const dotX = x + (pitchWidth - dotWidth) / 2;
-      const dotMetrics = ctx.measureText(dot);
-    const dotAscent = dotMetrics.actualBoundingBoxAscent || 0;
-    const dotY = yOffset + tokenDescent - dotAscent;
-    ctx.fillText(dot, dotX, dotY);
+       const centerX = x + ctx.measureText(token.text).width / 2;
+      drawLowerOctaveDot(ctx, centerX, yOffset, token);
     }
 
     if (token.mordent) {

@@ -10,7 +10,7 @@ export function setupMouseSelection(canvas, composition, cursorRef, selection, u
     const x = event.clientX - rect.left;
 
     // Locate drag start index
-    const tokens = composition.paragraphs[0].children;
+    const tokens = composition.lines[0].tokens;
     dragStartIndex = findIndexForX(tokens, x);
     dragStartX = x;
     isDragging = true;
@@ -27,7 +27,7 @@ export function setupMouseSelection(canvas, composition, cursorRef, selection, u
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
 
-    const tokens = composition.paragraphs[0].children;
+    const tokens = composition.lines[0].tokens;
     const dragEndIndex = findIndexForX(tokens, x);
 
     composition.selection.start = dragStartIndex;

@@ -22,7 +22,7 @@ export function loadComposition() {
     paragraphs: [
       {
         id: "paragraph-1",
-        children: []
+        tokens: []
       }
     ]
   };

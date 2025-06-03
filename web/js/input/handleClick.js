@@ -5,7 +5,7 @@ export function handleClick(event, composition, updateAndRender) {
   const rect = canvas.getBoundingClientRect();
   const xClick = event.clientX - rect.left;
 
-  const tokens = composition.paragraphs[0].children;
+  const tokens = composition.lines[0].tokens;
 
   console.log("🖱️ Click x =", xClick);
   console.log("🔴 Before: cursorIndex =", composition.cursorIndex);

@@ -1,8 +1,9 @@
+
 export function apply_to_pitches(composition, fn, ...args) {
-  const { selection, paragraphs } = composition;
+  const { selection, lines } = composition;
   if (!selection || selection.start == null || selection.end == null) return;
 
-  const tokens = paragraphs[0].children;
+  const tokens = lines[0].tokens;
   const start = Math.min(selection.start, selection.end);
   const end = Math.max(selection.start, selection.end);
 
@@ -26,18 +27,18 @@ export const setOctave = value => token => {
 };
 
 export function getSelectedTokens(composition) {
-  const tokens = composition.paragraphs?.[0]?.children || [];
+  const tokens = composition.lines?.[0]?.tokens || [];
   console.log("getselection tokens=",tokens);
   const selection = composition.selection;
   if (!selection || selection.start == null || selection.end == null) return [];
   const start = Math.min(selection.start, selection.end);
   const end = Math.max(selection.start, selection.end);
-  return tokens.slice(start, end + 1); // returns references
+  return tokens.slice(start, end); // corrected from end + 1
 }
 
 
 export function wrapSelectionWithTokens(composition, beginToken, endToken, options = {}) {
-  const tokens = composition.paragraphs[0].children;
+  const tokens = composition.lines[0].tokens;
   const { selection } = composition;
   if (!selection) return;
 
@@ -58,9 +59,5 @@ export function wrapSelectionWithTokens(composition, beginToken, endToken, optio
   // Cursor after the inserted RightSlur
   composition.cursorIndex = end + 1;
 
- composition.selection = {start: start++, end: end++};
+  composition.selection = { start: start, end: end };
 }
-
-
-
-

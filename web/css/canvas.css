@@ -1,0 +1,18 @@
+:root {
+  /* Font configuration */
+  --canvas-font: 16px 'Inter', sans-serif;
+  --lyric-font: 18px 'Georgia', serif;
+  --title-font: 24px 'Times New Roman', serif;
+  --composer-font: 18px 'Times New Roman', italic;
+
+  /* Octave dot positioning (percentages or multipliers) */
+  --octave-dot-above: 0.2;   /* percent of ascent */
+  --octave-dot-below: 0.5;   /* percent of descent */
+
+  /* Annotations */
+  --mordent-above: 1.2;      /* multiplier of ascent */
+  --syllable-below: 1.6;     /* multiplier of descent */
+
+  /* Slur arc */
+  --slur-vertical-gap: 10;   /* pixels */
+}

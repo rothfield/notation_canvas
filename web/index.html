@@ -1,27 +1,27 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Canvas Notation</title>
-  <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
+  <head>
+    <title>Canvas Notation</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/canvas.css">
+    <script type="module" src="js/state.js"></script>
+    <script type="module" src="js/canvas/index.js"></script>
+    <script type="module" src="js/input/handleClick.js"></script>
+    <script type="module" src="js/input/setupMouseSelection.js"></script>
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/renderToken.js"></script>
+    <script type="module" src="js/parseTokensToParagraph.js"></script>
+    <script type="module" src="js/utils/composition_utils.js"></script>
+    <script type="module" src="js/composition.js"></script>
+  </head>
+  <body>
     <div id="cmd-strip" style="margin: 10px; display: flex; gap: 10px;">
-  <button id="octave-lower">Lower</button>
-  <button id="octave-middle">Middle</button>
-  <button id="octave-upper">Upper</button>
-<button id="btn-slur">Slur</button>
-</div>
-  <canvas id="canvas" width="800" height="100"></canvas>
-  <pre id="output-content"></pre>
-  <script type="module" src="js/state.js"></script>
-  <script type="module" src="js/canvas_renderer.js"></script>
-  <script type="module" src="js/input/handleClick.js"></script>
-  <script type="module" src="js/input/setupMouseSelection.js"></script>
-  <script type="module" src="js/main.js"></script>
-  <script type="module" src="js/renderToken.js"></script>
-  <script type="module" src="js/utils/composition_utils.js"></script>
-  <script type="module" src="js/utils/getCanvasFontFromCSS.js"></script>
-<canvas id="canvas" width="800" height="200"></canvas>
-<pre id="data-model"></pre>
-</body>
+      <button id="octave-lower">Lower</button>
+      <button id="octave-middle">Middle</button>
+      <button id="octave-upper">Upper</button>
+      <button id="btn-slur">Slur</button>
+    </div>
+    <canvas id="canvas" width="800" height="200"></canvas>
+    <pre id="data-model"></pre>
+  </body>
 </html>

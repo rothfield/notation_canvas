@@ -1,13 +1,30 @@
+import { parseTokensToParagraph } from "./parseTokensToParagraph.js";
 import { composition } from "./state.js";
 import { blink } from "./state.js";
-import { renderComposition } from "./canvas_renderer.js";
+import { render } from "./canvas/index.js";
 import { handleClick } from "./input/handleClick.js";
 import { setupMouseSelection } from "./input/setupMouseSelection.js";
 import { loadComposition } from "./io.js";
 import { wrapSelectionWithTokens, applyToSelectedPitches, getSelectedTokens, setOctave } from "./utils/composition_utils.js";
 import { lexElement, parseElement } from "./lexer.js";
 
+function enableCanvasCssHotReload(intervalMs = 500) {
+  console.log("[DEV] Enabling canvas.css auto-reload");
+
+  setInterval(() => {
+    const oldLink = document.querySelector('link[href*="canvas.css"]');
+    if (!oldLink) return;
+
+    const newLink = oldLink.cloneNode();
+    newLink.href = `css/canvas.css?v=${Date.now()}`;
+    oldLink.replaceWith(newLink);
+  }, intervalMs);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  if (window.location.search.includes("dev")) {
+  enableCanvasCssHotReload();
+}
   const canvas = document.getElementById("canvas");
   const output = document.getElementById("data-model");
 
@@ -16,16 +33,19 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  function updateAndRender() {
-    //console.log("updateAndRender called");
-    renderComposition(canvas, composition);
-    output.textContent = JSON.stringify(composition, null, 2);
-  }
+  
+function updateAndRender() {
+ // composition.lines[0] = 
+//  parseTokensToParagraph(composition.lines[0].tokens)   //  ***NEW***
+  render(canvas, composition);
+  output.textContent = JSON.stringify(composition, null, 2);
+}
+
 
   document.addEventListener("keydown", (event) => {
     console.log("keydown eventlistener. event=",event);
-    const paragraph = composition.paragraphs?.[0];
-    const tokens = paragraph?.children || [];
+    const paragraph = composition.lines?.[0];
+    const tokens = paragraph?.tokens || [];
 
     // Ensure selection is initialized
     if (!composition.selection) {
@@ -94,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.key === "Backspace") {
       event.preventDefault();
       if (composition.cursorIndex > 0) {
-        paragraph.children.splice(composition.cursorIndex - 1, 1);
+        composition.tokens.splice(composition.cursorIndex - 1, 1);
         composition.cursorIndex--;
         composition.selection.start = composition.cursorIndex;
         composition.selection.end = composition.cursorIndex;
@@ -117,7 +137,7 @@ if (ignoredKeys.includes(event.key)) {
     //
     const token = parseElement(lexElement(event.key));
     if (token) {
-      paragraph.children.splice(composition.cursorIndex, 0, token);
+      composition.lines[0].tokens.splice(composition.cursorIndex, 0, token);
       composition.cursorIndex++;
       composition.selection.start = composition.cursorIndex;
       composition.selection.end = composition.cursorIndex;
@@ -176,16 +196,17 @@ if (ignoredKeys.includes(event.key)) {
   });
 
   setInterval(() => {
-    blink.visible = !blink.visible;
-    updateAndRender(); // re-render canvas with new blink state
-  }, 500); // 500ms interval
-
+  blink.visible = !blink.visible;
+  if (blink.enabled) {
+    updateAndRender();
+  }
+}, 500);
 
 });
 
 
 export function handleArrowKey(event, composition, updateAndRender) {
-  const paragraph = composition.paragraphs[0];
+  const paragraph = composition.lines[0];
   const { key, shiftKey } = event;
   let { cursorIndex, selection } = composition;
 
@@ -194,7 +215,7 @@ export function handleArrowKey(event, composition, updateAndRender) {
   // Move cursor
   if (key === "ArrowLeft" && cursorIndex > 0) {
     cursorIndex--;
-  } else if (key === "ArrowRight" && cursorIndex < paragraph.children.length) {
+  } else if (key === "ArrowRight" && cursorIndex < paragraph.tokens.length) {
     cursorIndex++;
   }
 

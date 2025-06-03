@@ -13,13 +13,13 @@ export function handleKeydown(event, composition, updateAndRender) {
 
     case "ArrowRight":
       event.preventDefault();
-      if (composition.cursorIndex < paragraph.children.length) composition.cursorIndex++;
+      if (composition.cursorIndex < paragraph.tokens.length) composition.cursorIndex++;
       break;
 
     case "Backspace":
       event.preventDefault();
       if (composition.cursorIndex > 0) {
-        paragraph.children.splice(composition.cursorIndex - 1, 1);
+        paragraph.tokens.splice(composition.cursorIndex - 1, 1);
         composition.cursorIndex--;
       }
       break;
@@ -28,7 +28,7 @@ export function handleKeydown(event, composition, updateAndRender) {
       // Insert character at current cursor index
       const token = parseElement(lexElement(event.key));
       if (token) {
-        paragraph.children.splice(composition.cursorIndex, 0, token);
+        paragraph.tokens.splice(composition.cursorIndex, 0, token);
         composition.cursorIndex++;
       }
   }

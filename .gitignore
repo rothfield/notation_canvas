@@ -7,4 +7,5 @@ log/
 *.zip
 *bak
 attic/
+tmp/
 

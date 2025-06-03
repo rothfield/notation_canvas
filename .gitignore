@@ -1,0 +1,10 @@
+logs/
+log/
+# env file
+.env
+*.tar
+*.tgz
+*.zip
+*bak
+attic/
+

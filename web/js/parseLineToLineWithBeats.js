@@ -11,7 +11,7 @@
  * }
  */
 
-export function parseTokensToParagraph(tokens) {
+export function parseLineToLineWithBeats(tokens) {
   const out_tokens = [];
   let currentBeat = [];
 

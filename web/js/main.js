@@ -2,9 +2,16 @@ import { parseLineToLineWithBeats } from "./parseLineToLineWithBeats.js";
 import * as state  from "./state.js";
 import { composition } from "./state.js";
 import { blink } from "./state.js";
+
+import { setupMouseEvents } from './input/mouse/index.js';
+//import { updateAndRender } from './canvas/composition-renderer.js';
+
+
+
+
+
 import  * as compositionRenderer from "./canvas/composition-renderer.js";
 import { handleClick } from "./input/handleClick.js";
-import { setupMouseSelection } from "./input/setupMouseSelection.js";
 import { loadComposition } from "./io.js";
 import { wrapSelectionWithTokens, applyToSelectedPitches, getSelectedTokens, setOctave } from "./utils/composition_utils.js";
 import { lexElement, parseElement } from "./lexer.js";
@@ -33,6 +40,16 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("Canvas or output element not found.");
     return;
   }
+
+  const context = {
+  canvas,
+  composition,
+  selection: composition.selection,
+  updateAndRender,
+  isDragging: false,
+  dragStartIndex: null,
+  dragStartX: null
+};
 
   
 function updateAndRender() {
@@ -153,13 +170,17 @@ if (ignoredKeys.includes(event.key)) {
     handleClick(event, composition, updateAndRender)
   );
 
-  setupMouseSelection(
-    canvas,
-    composition,
-    { value: composition.cursorIndex },
-    composition.selection,
-    updateAndRender
-  );
+
+ setupMouseEvents(canvas, context);
+
+  //
+  // setupMouseSelection(
+  //   canvas,
+  //   composition,
+  //   { value: composition.cursorIndex },
+  //   composition.selection,
+  //   updateAndRender
+  // );
 
 
   canvas.setAttribute("tabindex", "0");

@@ -1,7 +1,8 @@
-import { parseTokensToParagraph } from "./parseTokensToParagraph.js";
+import { parseLineToLineWithBeats } from "./parseLineToLineWithBeats.js";
+import * as state  from "./state.js";
 import { composition } from "./state.js";
 import { blink } from "./state.js";
-import { render } from "./canvas/index.js";
+import  * as compositionRenderer from "./canvas/composition-renderer.js";
 import { handleClick } from "./input/handleClick.js";
 import { setupMouseSelection } from "./input/setupMouseSelection.js";
 import { loadComposition } from "./io.js";
@@ -36,8 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
   
 function updateAndRender() {
  // composition.lines[0] = 
-//  parseTokensToParagraph(composition.lines[0].tokens)   //  ***NEW***
-  render(canvas, composition);
+//  parseLineToLineWithBeats(composition.lines[0].tokens)   //  ***NEW***
+  compositionRenderer.render(canvas, composition);
   output.textContent = JSON.stringify(composition, null, 2);
 }
 

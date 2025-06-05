@@ -1,46 +1,13 @@
 import { blink } from "../state.js";
-
-function drawUpperOctaveDot(ctx, centerX, yOffset, token) {
-  const dot = "•";
-  const dotWidth = ctx.measureText(dot).width;
-  const metrics = ctx.measureText(token.text);
-  const ascent = metrics.actualBoundingBoxAscent || 0;
-  const dotX = centerX - dotWidth / 2;
-  const dotY = yOffset - ascent - 1;  // dot sits just above the top of the character
-  ctx.fillText(dot, dotX, dotY);
-}
-
-function zzdrawLowerOctaveDot(ctx, centerX, yOffset, token) {
-  const dot = "•";
-  const dotWidth = ctx.measureText(dot).width;
-  const metrics = ctx.measureText(token.text);
-  const ascent = metrics.actualBoundingBoxAscent || 0;
-  const dotX = centerX - dotWidth / 2;
-  const dotY = yOffset + ascent + 1 - dotWidth;  // dot sits just above the top of the character
-  ctx.fillText(dot, dotX, dotY);
-}
-
-
-function drawLowerOctaveDot(ctx, centerX, yOffset, token) {
-  const dot = "•";
-  const dotWidth = ctx.measureText(dot).width;
-
-  const metrics = ctx.measureText(token.text);
-  const ascent = metrics.actualBoundingBoxAscent || 0;
-  const descent = metrics.actualBoundingBoxDescent || 0;
-
-  const dotX = centerX - dotWidth / 2;
-  const dotY = yOffset + descent + 1 + dotWidth;  // dot sits just below the bounding box
-
-  ctx.fillText(dot, dotX, dotY);
-}
-
-
+import * as selectionRenderer from "./selection-renderer.js";
+import * as octaveRenderer from "./octave-renderer.js";
+// canvas/composition.js
 
 // Utility to read CSS variable as string or number
 function getCSSValue(propName) {
   return getComputedStyle(document.documentElement).getPropertyValue(propName).trim();
 }
+
 function getCSSNumber(propName) {
   return parseFloat(getCSSValue(propName)) || 0;
 }
@@ -76,6 +43,9 @@ export function render(canvas, composition) {
   const syllableBelow = getCSSNumber("--syllable-below");
   const slurVerticalGap = getCSSNumber("--slur-vertical-gap");
 
+
+selectionRenderer.render(ctx, tokens, selection);
+
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
     const text = token.text || "";
@@ -96,11 +66,6 @@ export function render(canvas, composition) {
       i < Math.max(selection.start, selection.end);
 
     ctx.fillStyle = isSelected ? "white" : "black";
-    if (isSelected) {
-      ctx.fillStyle = "#0033cc";
-      ctx.fillRect(x - 2, yOffset - tokenAscent, width, height);
-      ctx.fillStyle = "white";
-    }
 
     if (blink.visible && cursorIndex === i) {
       ctx.beginPath();
@@ -116,12 +81,12 @@ export function render(canvas, composition) {
 
     if (token.octave === 1) {
       const centerX = x + ctx.measureText(token.text).width / 2;
-      drawUpperOctaveDot(ctx, centerX, yOffset,token);
+      octaveRenderer.renderUpper(ctx, centerX, yOffset,token);
     }
 
     if (token.octave === -1) {
        const centerX = x + ctx.measureText(token.text).width / 2;
-      drawLowerOctaveDot(ctx, centerX, yOffset, token);
+      octaveRenderer.renderLower(ctx, centerX, yOffset, token);
     }
 
     if (token.mordent) {

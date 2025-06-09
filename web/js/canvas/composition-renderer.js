@@ -16,27 +16,27 @@ export function render(canvas, composition) {
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  //  const canvasFont = getCSSValue("--canvas-font");
-  const lyricFont = getCSSValue("--lyric-font");
+  //  const lyricFont = getCSSValue("--lyric-font");
   const titleFont = getCSSValue("--title-font");
   const composerFont = getCSSValue("--composer-font");
   const canvasFont = getComputedStyle(document.documentElement)
   .getPropertyValue("--canvas-font")
   .trim();
+  const lyricFont = getCSSValue("--lyric-font");
 
   ctx.font = canvasFont;
-  ctx.font = lyricFont;
-  const lyricMetrics = ctx.measureText("Mg");
-  const lyricAscent = lyricMetrics.actualBoundingBoxAscent || 12;
-  const lyricDescent = lyricMetrics.actualBoundingBoxDescent || 4;
-  const lyricHeight = lyricAscent + lyricDescent;
+  ctx.font = canvasFont;
 
+  ctx.font = lyricFont;
   const sampleMetrics = ctx.measureText("M");
   const ascent = sampleMetrics.actualBoundingBoxAscent || 15;
   const descent = sampleMetrics.actualBoundingBoxDescent || 5;
-
+  const referenceMetrics = ctx.measureText("Mg");
+const refAscent = referenceMetrics.actualBoundingBoxAscent || 15;
+const yOffset = Math.floor(canvas.height / 2 + refAscent / 2);  // ← this line
+  const globalUpperY = yOffset - refAscent - 5;
   const xOffset = 20;
-  const yOffset = Math.floor(canvas.height / 2 + ascent / 2);
+  
   let x = xOffset;
 
   const tokens = composition.lines[0].tokens;
@@ -58,6 +58,8 @@ selectionRenderer.render(ctx, tokens, selection);
     if (typeof text !== "string") continue;
 
     ctx.font = canvasFont;
+  ctx.font = canvasFont;
+
   ctx.font = lyricFont;
   const lyricMetrics = ctx.measureText("Mg");
   const lyricAscent = lyricMetrics.actualBoundingBoxAscent || 12;
@@ -102,8 +104,9 @@ selectionRenderer.render(ctx, tokens, selection);
     const pitchWidth = width;
 
     if (token.octave === 1) {
-      const centerX = x + ctx.measureText(token.text).width / 2;
-      octaveRenderer.renderUpper(ctx, centerX, yOffset,token);
+      const centerX = x + pitchWidth / 2;
+const tokenTopY = yOffset - tokenAscent;
+octaveRenderer.renderUpper(ctx, centerX, tokenTopY, token);
     }
 
     if (token.octave === -1) {
@@ -115,7 +118,7 @@ selectionRenderer.render(ctx, tokens, selection);
       const symbol = "~";
       const symbolWidth = ctx.measureText(symbol).width;
       const symbolX = x + (pitchWidth - symbolWidth) / 2;
-      ctx.fillText(symbol, symbolX, yOffset - tokenAscent * mordentAbove);
+      ctx.fillText(symbol, symbolX, refTopY - 2);
     }
 
     if (token.syllable) {

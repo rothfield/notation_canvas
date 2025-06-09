@@ -1,4 +1,4 @@
-import { createComposition } from "./composition.js";
+import { createComposition } from "./models/composition.js";
 
 export const blink = {
   visible: true,

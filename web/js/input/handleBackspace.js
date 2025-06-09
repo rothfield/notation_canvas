@@ -1,16 +1,21 @@
+/**
+ * Handles Backspace by deleting the token before the cursor,
+ * and updating the cursor and selection to match.
+ */
+export function handleBackspace(composition, updateAndRender) {
+  const paragraph = composition.lines?.[0];
+  const tokens = paragraph?.tokens;
 
-export function handleBackspace(composition, composition.cursorIndex, composition.selection) {
-  const tokens = composition.lines[0].tokens;
-  const index = composition.cursorIndex;
+  if (!tokens || composition.cursorIndex <= 0) return;
 
-  if (composition.selection.start !== null && composition.selection.end !== null) {
-    const selStart = Math.min(composition.selection.start, composition.selection.end);
-    const selEnd = Math.max(composition.selection.start, composition.selection.end);
-    tokens.splice(selStart, selEnd - selStart + 1);
-    composition.cursorIndex = selStart;
-    composition.selection.start = composition.selection.end = null;
-  } else if (index > 0) {
-    tokens.splice(index - 1, 1);
-    composition.cursorIndex -= 1;
-  }
+  // Delete token before cursor
+  tokens.splice(composition.cursorIndex - 1, 1);
+
+  // Move cursor and mutate selection in-place
+  composition.cursorIndex--;
+  composition.selection.start = composition.cursorIndex;
+  composition.selection.end = composition.cursorIndex;
+
+  updateAndRender();
 }
+

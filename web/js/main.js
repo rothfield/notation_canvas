@@ -1,20 +1,13 @@
 import { parseLineToLineWithBeats } from "./parseLineToLineWithBeats.js";
-import * as state  from "./state.js";
+import * as state from "./state.js";
 import { composition } from "./state.js";
 import { blink } from "./state.js";
-
 import { setupMouseEvents } from './input/mouse/index.js';
-//import { updateAndRender } from './canvas/composition-renderer.js';
-
-
-
-
-
-import  * as compositionRenderer from "./canvas/composition-renderer.js";
 import { handleClick } from "./input/handleClick.js";
+import { handleKeydown } from "./input/handleKeydown.js";
 import { loadComposition } from "./io.js";
-import { wrapSelectionWithTokens, applyToSelectedPitches, getSelectedTokens, setOctave } from "./utils/composition_utils.js";
-import { lexElement, parseElement } from "./lexer.js";
+import { wrapSelectionWithTokens, applyToSelectedPitches } from "./utils/composition_utils.js";
+import * as compositionRenderer from "./canvas/composition-renderer.js";
 
 function enableCanvasCssHotReload(intervalMs = 500) {
   console.log("[DEV] Enabling canvas.css auto-reload");
@@ -31,8 +24,9 @@ function enableCanvasCssHotReload(intervalMs = 500) {
 
 document.addEventListener("DOMContentLoaded", () => {
   if (window.location.search.includes("dev")) {
-  enableCanvasCssHotReload();
-}
+    enableCanvasCssHotReload();
+  }
+
   const canvas = document.getElementById("canvas");
   const output = document.getElementById("data-model");
 
@@ -42,160 +36,40 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const context = {
-  canvas,
-  composition,
-  selection: composition.selection,
-  updateAndRender,
-  isDragging: false,
-  dragStartIndex: null,
-  dragStartX: null
-};
+    canvas,
+    composition,
+    selection: composition.selection,
+    updateAndRender,
+    isDragging: false,
+    dragStartIndex: null,
+    dragStartX: null
+  };
 
-  
-function updateAndRender() {
- // composition.lines[0] = 
-//  parseLineToLineWithBeats(composition.lines[0].tokens)   //  ***NEW***
-  compositionRenderer.render(canvas, composition);
-  output.textContent = JSON.stringify(composition, null, 2);
-}
+  function updateAndRender() {
+    compositionRenderer.render(canvas, composition);
+    output.textContent = JSON.stringify(composition, null, 2);
+  }
 
-
-  document.addEventListener("keydown", (event) => {
-    console.log("keydown eventlistener. event=",event);
-    const paragraph = composition.lines?.[0];
-    const tokens = paragraph?.tokens || [];
-
-    // Ensure selection is initialized
-    if (!composition.selection) {
-      composition.selection = { start: 0, end: 0 };
-    }
-
-    // --- ALT COMMANDS ---
-    if (event.altKey && event.shiftKey) {
-      switch (event.key.toLowerCase()) {
-        case "u":
-          getSelectedTokens(composition)
-            .filter(t => t.type === "note")
-            .forEach(setOctave(1));
-          updateAndRender();
-          event.preventDefault();
-          return;
-
-        case "l":   //L  
-          console.log("***alt-L case")
-          getSelectedTokens(composition)
-            .filter(t => t.type === "note")
-            .forEach(setOctave(-1));
-          updateAndRender();
-          event.preventDefault();
-          return;
-
-        case "0":
-          getSelectedTokens(composition)
-            .filter(t => t.type === "note")
-            .forEach(setOctave(null));
-          updateAndRender();
-          event.preventDefault();
-          return;
-      }
-    }
-    if (event.key === "ArrowRight") {
-      handleArrowKey(event, composition, "right", updateAndRender);
-      updateAndRender()
-      return
-    }
-    else if (event.key === "ArrowLeft") {
-      handleArrowKey(event, composition, "left", updateAndRender);
-      updateAndRender()
-      return
-    }
-    // --- ARROW KEYS ---
-    if (event.key === "zArrowLeft") {
-      event.preventDefault();
-      composition.cursorIndex = Math.max(0, composition.cursorIndex - 1);
-      composition.selection.start = composition.cursorIndex;
-      composition.selection.end = composition.cursorIndex;
-      updateAndRender();
-      return;
-    }
-
-    if (event.key === "zArrowRight") {
-      event.preventDefault();
-      composition.cursorIndex = Math.min(tokens.length, composition.cursorIndex + 1);
-      composition.selection.start = composition.cursorIndex;
-      composition.selection.end = composition.cursorIndex;
-      updateAndRender();
-      return;
-    }
-
-    // --- BACKSPACE ---
-    if (event.key === "Backspace") {
-      event.preventDefault();
-      if (composition.cursorIndex > 0) {
-        composition.tokens.splice(composition.cursorIndex - 1, 1);
-        composition.cursorIndex--;
-        composition.selection.start = composition.cursorIndex;
-        composition.selection.end = composition.cursorIndex;
-      }
-      updateAndRender();
-      return;
-    }
-    if (event.code === "Space") {
-      event.preventDefault();
-    }
-
-    // Filter out standalone modifier keys
-const ignoredKeys = ["Alt", "Meta", "Control", "Shift", "CapsLock", "Escape"];
-if (ignoredKeys.includes(event.key)) {
-  console.log("Ignoring modifier key:", event.key);
-  return;
-}
-
-    // --- CHARACTER INSERTION ---
-    //
-    const token = parseElement(lexElement(event.key));
-    if (token) {
-      composition.lines[0].tokens.splice(composition.cursorIndex, 0, token);
-      composition.cursorIndex++;
-      composition.selection.start = composition.cursorIndex;
-      composition.selection.end = composition.cursorIndex;
-      updateAndRender();
-    }
-  });
-
-
-
+  document.addEventListener("keydown", (event) =>
+    handleKeydown(event, composition, updateAndRender)
+  );
 
   canvas.addEventListener("mousedown", (event) =>
     handleClick(event, composition, updateAndRender)
   );
 
-
- setupMouseEvents(canvas, context);
-
-  //
-  // setupMouseSelection(
-  //   canvas,
-  //   composition,
-  //   { value: composition.cursorIndex },
-  //   composition.selection,
-  //   updateAndRender
-  // );
-
+  setupMouseEvents(canvas, context);
 
   canvas.setAttribute("tabindex", "0");
   canvas.focus();
 
   updateAndRender();
 
-
-
-
   document.getElementById("octave-lower").addEventListener("click", () => {
     applyToSelectedPitches(composition, t => t.octave = -1);
     canvas.focus();
     updateAndRender();
-  })
+  });
 
   document.getElementById("octave-middle").addEventListener("click", () => {
     applyToSelectedPitches(composition, t => t.octave = null);
@@ -210,51 +84,18 @@ if (ignoredKeys.includes(event.key)) {
   });
 
   document.getElementById("btn-slur").addEventListener("click", () => {
-    const tokBegin= { type: "leftSlur" } 
-    const tokEnd= { type: "rightSlur" }
-    wrapSelectionWithTokens(composition, tokBegin, tokEnd)
+    const tokBegin = { type: "leftSlur" };
+    const tokEnd = { type: "rightSlur" };
+    wrapSelectionWithTokens(composition, tokBegin, tokEnd);
     canvas.focus();
     updateAndRender();
   });
 
   setInterval(() => {
-  blink.visible = !blink.visible;
-  if (blink.enabled) {
-    updateAndRender();
-  }
-}, 500);
-
-});
-
-
-export function handleArrowKey(event, composition, updateAndRender) {
-  const paragraph = composition.lines[0];
-  const { key, shiftKey } = event;
-  let { cursorIndex, selection } = composition;
-
-  if (key !== "ArrowLeft" && key !== "ArrowRight") return false;
-
-  // Move cursor
-  if (key === "ArrowLeft" && cursorIndex > 0) {
-    cursorIndex--;
-  } else if (key === "ArrowRight" && cursorIndex < paragraph.tokens.length) {
-    cursorIndex++;
-  }
-
-  // Update selection
-  if (shiftKey) {
-    if (cursorIndex < selection.start) {
-      selection.start = cursorIndex;
-    } else {
-      selection.end = cursorIndex;
+    blink.visible = !blink.visible;
+    if (blink.enabled) {
+      updateAndRender();
     }
-  } else {
-    selection.start = selection.end = cursorIndex;
-  }
-
-  composition.cursorIndex = cursorIndex;
-  updateAndRender();
-  event.preventDefault();
-  return true;
-}
+  }, 500);
+});
 

@@ -25,6 +25,11 @@ export function render(canvas, composition) {
   .trim();
 
   ctx.font = canvasFont;
+  ctx.font = lyricFont;
+  const lyricMetrics = ctx.measureText("Mg");
+  const lyricAscent = lyricMetrics.actualBoundingBoxAscent || 12;
+  const lyricDescent = lyricMetrics.actualBoundingBoxDescent || 4;
+  const lyricHeight = lyricAscent + lyricDescent;
 
   const sampleMetrics = ctx.measureText("M");
   const ascent = sampleMetrics.actualBoundingBoxAscent || 15;
@@ -53,24 +58,41 @@ selectionRenderer.render(ctx, tokens, selection);
     if (typeof text !== "string") continue;
 
     ctx.font = canvasFont;
+  ctx.font = lyricFont;
+  const lyricMetrics = ctx.measureText("Mg");
+  const lyricAscent = lyricMetrics.actualBoundingBoxAscent || 12;
+  const lyricDescent = lyricMetrics.actualBoundingBoxDescent || 4;
+  const lyricHeight = lyricAscent + lyricDescent;
 
     const metrics = ctx.measureText(text);
     const width = Math.ceil(metrics.width) + 0.5;
     const tokenAscent = metrics.actualBoundingBoxAscent || ascent;
     const tokenDescent = metrics.actualBoundingBoxDescent || descent;
     const height = tokenAscent + tokenDescent;
+    let highlightTop = yOffset - tokenAscent;
+    let highlightBottom = yOffset + tokenDescent;
+    highlightTop -= 15;
+    highlightBottom += 20;
 
     const isSelected = selection?.start !== null &&
       selection?.end !== null &&
       i >= Math.min(selection.start, selection.end) &&
       i < Math.max(selection.start, selection.end);
 
-    ctx.fillStyle = isSelected ? "white" : "black";
+    if (isSelected) {
+      ctx.fillStyle = "#0033cc";
+      ctx.fillRect(x - 2, highlightTop, width + 4, highlightBottom - highlightTop);
+      ctx.fillStyle = "white";
+    } else {
+      ctx.fillStyle = "black";
+    }
 
     if (blink.visible && cursorIndex === i) {
+      const cursorTop = yOffset - tokenAscent - 15;
+      const cursorBottom = yOffset + tokenDescent + 20;
       ctx.beginPath();
-      ctx.moveTo(x - 1, yOffset - ascent);
-      ctx.lineTo(x - 1, yOffset + descent);
+      ctx.moveTo(x - 1, cursorTop);
+      ctx.lineTo(x - 1, cursorBottom);
       ctx.strokeStyle = "red";
       ctx.lineWidth = 1;
       ctx.stroke();
@@ -99,16 +121,18 @@ selectionRenderer.render(ctx, tokens, selection);
     if (token.syllable) {
       ctx.font = lyricFont;
       const syll = token.syllable;
-      const textWidth = ctx.measureText(syll).width;
-      const textX = x + (pitchWidth - textWidth) / 2;
-      ctx.fillText(syll, textX, yOffset + tokenDescent * syllableBelow);
+      const textX = x;
+      const syllableY = yOffset + descent + 3 + lyricAscent;
+      ctx.fillText(syll, textX, syllableY);
     }
 
+    const fullTop = yOffset - tokenAscent - 15;
+    const fullBottom = yOffset + tokenDescent + 20;
     token.bbox = {
       x,
-      y: yOffset - tokenAscent,
+      y: fullTop,
       width,
-      height,
+      height: fullBottom - fullTop,
     };
 
     x += width;

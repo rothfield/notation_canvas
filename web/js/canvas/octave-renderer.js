@@ -33,7 +33,7 @@ export function renderUpper(ctx, centerX, yOffset, token) {
   const metrics = ctx.measureText(token.text);
   const ascent = metrics.actualBoundingBoxAscent || 0;
   const dotX = centerX - dotWidth / 2;
-  const dotY = yOffset - ascent - 1;  // dot sits just above the top of the character
+  const dotY = yOffset - 1;  // yOffset is now top of glyph
   ctx.fillText(dot, dotX, dotY);
 }
 

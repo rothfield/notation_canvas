@@ -1,3 +1,8 @@
+import * as selectionRenderer from "../canvas/selection-renderer.js";
+import * as octaveRenderer from "../canvas/octave-renderer.js";
+import {pitchCodeAndNotationToPitch} from "../models/notation-utils.js";
+
+// canvas/composition.js
 function drawBravuraSymbol(ctx, glyph, x, y) {
   ctx.save();
   ctx.font = "20px Bravura";
@@ -5,11 +10,6 @@ function drawBravuraSymbol(ctx, glyph, x, y) {
   ctx.restore();
 }
 import { blink } from "../state.js";
-import * as selectionRenderer from "../canvas/selection-renderer.js";
-import * as octaveRenderer from "../canvas/octave-renderer.js";
-import {pitchCodeAndNotationToPitch} from "../models/notation-utils.js";
-
-// canvas/composition.js
 
 // Utility to read CSS variable as string or number
 function getCSSValue(propName) {

@@ -1,5 +1,5 @@
 import { Notation } from "./notation.js";
-
+import { pitchAndNotationToPitchCode} from "../models/notation-utils.js";
 /**
  * @typedef {Object} Note
  * @property {string} type - Always "note"
@@ -42,10 +42,13 @@ export function createNote({
   length = 1
 } = {}) {
   console.log("createNote,",  {pitch,text,line,col})
+  console.log("createNote,calling pitchAndNotationToPitchCode", pitch,notation )
+  pitchCode = pitchAndNotationToPitchCode(pitch,notation) 
   return {
     type: "note",
     pitch,
     pitchCode,
+    notation,
     octave,
     text,
     syllables,

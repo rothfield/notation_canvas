@@ -1,4 +1,5 @@
-export const pitchNameToCanonicalCode = {
+
+export const PitchAndNotationToPitchCodeMap = {
   "1##:number": "1##",
   "1#:number": "1#",
   "1:number": "1",

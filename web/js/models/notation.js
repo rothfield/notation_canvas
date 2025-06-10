@@ -20,9 +20,9 @@ export const NotationList = [
 
 // Optional: reverse lookup if you switch to enums later
 export const NotationName = {
-  [Notation.SARGAM]: "Sargam",
-  [Notation.NUMBER]: "Number",
-  [Notation.WESTERN]: "Western",
+  [Notation.SARGAM]: "sargam",
+  [Notation.NUMBER]: "number",
+  [Notation.WESTERN]: "western",
 };
 
 // Optional: readable labels for UI

@@ -1,18 +1,22 @@
 import { parseLineToLineWithBeats } from "./parseLineToLineWithBeats.js";
 import * as state from "./state.js";
 import { composition } from "./state.js";
-import { blink } from "./state.js";
 import { setupMouseEvents } from './input/mouse/index.js';
 import { handleClick } from "./input/handleClick.js";
 import { handleKeydown } from "./input/handleKeydown.js";
 import { loadComposition } from "./io.js";
 import { wrapSelectionWithTokens, applyToSelectedPitches } from "./utils/composition_utils.js";
 import * as compositionRenderer from "./canvas/composition-renderer.js";
+import { blink, startBlinking } from "./state.js";
+
+
+
 
 function enableCanvasCssHotReload(intervalMs = 500) {
   console.log("[DEV] Enabling canvas.css auto-reload");
 
   setInterval(() => {
+   
     const oldLink = document.querySelector('link[href*="canvas.css"]');
     if (!oldLink) return;
 
@@ -91,6 +95,23 @@ document.addEventListener("DOMContentLoaded", () => {
     updateAndRender();
   });
 
+document.getElementById("notation-select").addEventListener("change", (e) => {
+  const value = e.target.value;
+
+  console.log("notation-select, value=", value);
+  applyToSelectedPitches(composition, token => {
+    console.log("setting notation");
+    token.notation = value;
+  });
+
+  updateAndRender();
+});
+
+  startBlinking(() => {
+  updateAndRender();
+  });
+
+  startBlinking(updateAndRender);
   setInterval(() => {
     blink.visible = !blink.visible;
     if (blink.enabled) {

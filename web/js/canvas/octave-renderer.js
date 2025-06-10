@@ -27,20 +27,18 @@ export function render(ctx, token) {
 }
 
 export function renderUpper(ctx, centerX, yOffset, token) {
-  console.log("octave.js/renderUpper")
+//  console.log("octave.js/renderUpper")
   const dot = "•";
   const dotWidth = ctx.measureText(dot).width;
   const metrics = ctx.measureText(token.text);
   const ascent = metrics.actualBoundingBoxAscent || 0;
   const dotX = centerX - dotWidth / 2;
-  const dotY = yOffset - 1;  // yOffset is now top of glyph
+  const dotY = yOffset;  // already aligned to top of M - 1px  // dot sits just above the top of the character
   ctx.fillText(dot, dotX, dotY);
 }
 
 
 export function renderLower(ctx, centerX, yOffset, token) {
-  console.log("octave.js/renderLower");
-
   const dot = "•";
   const dotMetrics = ctx.measureText(dot);
   const dotWidth = dotMetrics.width;

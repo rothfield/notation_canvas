@@ -1,6 +1,8 @@
 import { blink } from "../state.js";
-import * as selectionRenderer from "./selection-renderer.js";
-import * as octaveRenderer from "./octave-renderer.js";
+import * as selectionRenderer from "../canvas/selection-renderer.js";
+import * as octaveRenderer from "../canvas/octave-renderer.js";
+import {pitchCodeAndNotationToPitch} from "../models/notation-utils.js";
+
 // canvas/composition.js
 
 // Utility to read CSS variable as string or number
@@ -33,7 +35,8 @@ export function render(canvas, composition) {
   const descent = sampleMetrics.actualBoundingBoxDescent || 5;
   const referenceMetrics = ctx.measureText("Mg");
 const refAscent = referenceMetrics.actualBoundingBoxAscent || 15;
-const yOffset = Math.floor(canvas.height / 2 + refAscent / 2);  // ← this line
+const yOffset = Math.floor(canvas.height / 2 + refAscent / 2);
+  const referenceTopY = yOffset - referenceMetrics.actualBoundingBoxAscent;  // ← this line
   const globalUpperY = yOffset - refAscent - 5;
   const xOffset = 20;
   
@@ -53,7 +56,13 @@ selectionRenderer.render(ctx, tokens, selection);
 
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
-    const text = token.text || "";
+    let text = ""
+    text = token.text || "";
+    if (token.type === 'note') {
+       text  = pitchCodeAndNotationToPitch(token.pitchCode,token.notation);
+      console.log("pitchCodeAndNotationToPitch",token.pitchCode," ",token.notation," returns",text)
+       console.log("getNoteText returns ", text)
+    }
     if (token.type === "unknown") continue;
     if (typeof text !== "string") continue;
 
@@ -105,8 +114,7 @@ selectionRenderer.render(ctx, tokens, selection);
 
     if (token.octave === 1) {
       const centerX = x + pitchWidth / 2;
-const tokenTopY = yOffset - tokenAscent;
-octaveRenderer.renderUpper(ctx, centerX, tokenTopY, token);
+      octaveRenderer.renderUpper(ctx, centerX, referenceTopY - 1, token);
     }
 
     if (token.octave === -1) {

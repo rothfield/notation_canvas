@@ -1,224 +1,40 @@
 import { Notation } from "./notation.js";
 
-
-
-export function oldcreateComposition() {
+export function createComposition() {
   return {
     type: "composition",
-    name: "fugue",
     notation: Notation.SARGAM,
+    name: "fugue",
     composer: "bach",
     lines: [
       {
         type: "line",
         lineName: "1.",
         notation: "sargam",
-        tokens: [] // editable token stream
-        // no parse_tree here — computed on the fly for rendering
-      }
+        tokens: [
+          {
+            type: "note",
+            pitch: "S",
+            pitchCode: "1",
+            octave: -1,
+            text: "S",
+            syllable: "Happy",
+            notation: "sargam",
+            bbox: {
+              x: 20,
+              y: 94,
+              width: 11.5,
+              height: 17,
+            },
+          },
+        ],
+      },
     ],
-    selection: { start: 0, end: 0 },
-    cursorIndex: 0
+    selection: {
+      start: 0,
+      end: 7,
+    },
+    cursorIndex: 0,
   };
 }
 
-export function createComposition() {
-  return {
-    "type": "composition",
-    "notation": Notation.SARGAM,
-    "name": "fugue",
-    "composer": "bach",
-    "lines": [
-      {
-        "type": "line",
-        "lineName": "1.",
-        "notation": "sargam",
-        "tokens": [
-          {
-            "type": "note",
-            "pitch": "S",
-            "octave": -1,
-            "text": "S",
-            "syllable": "Happy",
-            "notation": "sargam",
-            "bbox": {
-              "x": 20,
-              "y": 94,
-              "width": 11.5,
-              "height": 17
-            }
-          },
-          {
-            "type": "note",
-            "pitch": "g",
-            "octave": -1,
-            "text": "g",
-            "notation": "sargam",
-            "bbox": {
-              "x": 31.5,
-              "y": 97,
-              "width": 10.5,
-              "height": 12
-            }
-          },
-          {
-            "type": "space",
-            "text": " ",
-            "notation": "sargam",
-            "bbox": {
-              "x": 42,
-              "y": 94,
-              "width": 5.5,
-              "height": 17
-            }
-          },
-          {
-            "type": "space",
-            "text": " ",
-            "notation": "sargam",
-            "bbox": {
-              "x": 47.5,
-              "y": 94,
-              "width": 5.5,
-              "height": 17
-            }
-          },
-          {
-            "type": "note",
-            "pitch": "M",
-            "octave": 1,
-            "text": "M",
-            "notation": "sargam",
-            "bbox": {
-              "x": 53,
-              "y": 94,
-              "width": 15.5,
-              "height": 17
-            }
-          },
-          {
-            "type": "note",
-            "pitch": "P",
-            "octave": 1,
-            "text": "P",
-            "notation": "sargam",
-            "bbox": {
-              "x": 68.5,
-              "y": 94,
-              "width": 11.5,
-              "height": 17
-            }
-          },
-          {
-            "type": "note",
-            "pitch": "r",
-            "octave": 1,
-            "text": "r",
-            "notation": "sargam",
-            "bbox": {
-              "x": 80,
-              "y": 97,
-              "width": 7.5,
-              "height": 14
-            }
-          },
-          {
-            "type": "dash",
-            "text": "-",
-            "bbox": {
-              "x": 87.5,
-              "y": 99,
-              "width": 8.5,
-              "height": 3
-            }
-          },
-          {
-            "type": "space",
-            "text": " ",
-            "bbox": {
-              "x": 96,
-              "y": 94,
-              "width": 5.5,
-              "height": 17
-            }
-          },
-          {
-            "type": "space",
-            "text": " ",
-            "bbox": {
-              "x": 101.5,
-              "y": 94,
-              "width": 5.5,
-              "height": 17
-            }
-          },
-          {
-            "type": "space",
-            "text": " ",
-            "bbox": {
-              "x": 107,
-              "y": 94,
-              "width": 5.5,
-              "height": 17
-            }
-          },
-          {
-            "type": "space",
-            "text": " ",
-            "bbox": {
-              "x": 112.5,
-              "y": 94,
-              "width": 5.5,
-              "height": 17
-            }
-          },
-          {
-            "type": "space",
-            "text": " ",
-            "bbox": {
-              "x": 118,
-              "y": 94,
-              "width": 5.5,
-              "height": 17
-            }
-          },
-          {
-            "type": "space",
-            "text": " ",
-            "bbox": {
-              "x": 123.5,
-              "y": 94,
-              "width": 5.5,
-              "height": 17
-            }
-          },
-          {
-            "type": "space",
-            "text": " ",
-            "bbox": {
-              "x": 129,
-              "y": 94,
-              "width": 5.5,
-              "height": 17
-            }
-          },
-          {
-            "type": "space",
-            "text": " ",
-            "bbox": {
-              "x": 134.5,
-              "y": 94,
-              "width": 5.5,
-              "height": 17
-            }
-          }
-        ]
-      }
-    ],
-    "selection": {
-      "start": 0,
-      "end": 7
-    },
-    "cursorIndex": 0
-  }
-}

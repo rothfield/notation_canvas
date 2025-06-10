@@ -1,4 +1,4 @@
-export const pitchCodeAndNotationToPitch = {
+export const PitchCodeAndNotationToPitchMap = {
   "1##:number": "1##",
   "1##:sargam": "S##",
   "1##:western": "C##",

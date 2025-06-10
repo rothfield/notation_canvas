@@ -6,7 +6,7 @@ import { handleClick } from "./input/handleClick.js";
 import { handleKeydown } from "./input/handleKeydown.js";
 import { loadComposition } from "./io.js";
 import { wrapSelectionWithTokens, applyToSelectedPitches } from "./utils/composition_utils.js";
-import * as compositionRenderer from "./canvas/composition-renderer.js";
+import * as canvasRenderer from "./canvas/renderer.js";
 import { blink, startBlinking } from "./state.js";
 
 
@@ -16,7 +16,7 @@ function enableCanvasCssHotReload(intervalMs = 500) {
   console.log("[DEV] Enabling canvas.css auto-reload");
 
   setInterval(() => {
-   
+
     const oldLink = document.querySelector('link[href*="canvas.css"]');
     if (!oldLink) return;
 
@@ -33,12 +33,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const canvas = document.getElementById("canvas");
   const output = document.getElementById("data-model");
-
   if (!canvas || !output) {
     console.error("Canvas or output element not found.");
     return;
   }
-
+  // USED???
   const context = {
     canvas,
     composition,
@@ -49,8 +48,11 @@ document.addEventListener("DOMContentLoaded", () => {
     dragStartX: null
   };
 
+  // I believe this is closed over and available to all listeners!!!!
+  const ctx = canvas.getContext("2d");
+
   function updateAndRender() {
-    compositionRenderer.render(canvas, composition);
+    canvasRenderer.render(canvas, composition,ctx);
     output.textContent = JSON.stringify(composition, null, 2);
   }
 
@@ -95,20 +97,20 @@ document.addEventListener("DOMContentLoaded", () => {
     updateAndRender();
   });
 
-document.getElementById("notation-select").addEventListener("change", (e) => {
-  const value = e.target.value;
+  document.getElementById("notation-select").addEventListener("change", (e) => {
+    const value = e.target.value;
 
-  console.log("notation-select, value=", value);
-  applyToSelectedPitches(composition, token => {
-    console.log("setting notation");
-    token.notation = value;
+    console.log("notation-select, value=", value);
+    applyToSelectedPitches(composition, token => {
+      console.log("setting notation");
+      token.notation = value;
+    });
+
+    updateAndRender();
   });
 
-  updateAndRender();
-});
-
   startBlinking(() => {
-  updateAndRender();
+    updateAndRender();
   });
 
   startBlinking(updateAndRender);

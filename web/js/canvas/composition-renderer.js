@@ -1,7 +1,14 @@
+function drawSymbol(ctx, symbol, x, y) {
+  ctx.save();
+  ctx.font = "20px Bravura";
+  ctx.fillText(symbol, x, y);
+  ctx.restore();
+}
 import { blink } from "../state.js";
 import * as selectionRenderer from "../canvas/selection-renderer.js";
 import * as octaveRenderer from "../canvas/octave-renderer.js";
 import {pitchCodeAndNotationToPitch} from "../models/notation-utils.js";
+import { SMuFL } from "../canvas/smufl.js";
 
 // canvas/composition.js
 
@@ -51,6 +58,9 @@ const yOffset = Math.floor(canvas.height / 2 + refAscent / 2);
   const syllableBelow = getCSSNumber("--syllable-below");
   const slurVerticalGap = getCSSNumber("--slur-vertical-gap");
 
+ctx.font = "20px Bravura";
+ctx.fillText(SMuFL.accidentalSharp, x, yOffset-50);  // ♯
+ctx.fillText(SMuFL.barlineDouble, x+40, yOffset-30);    // ||
 
 selectionRenderer.render(ctx, tokens, selection);
 

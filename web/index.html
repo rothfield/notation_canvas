@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <style>
+    @font-face {
+    font-family: 'Bravura';
+    src: url('fonts/Bravura.otf?v=1') format('opentype');
+    }
+    .music-symbol {
+    font-family: 'Bravura', serif;
+    }
+    </style>
+
     <title>Canvas Notation</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/canvas.css">
@@ -20,11 +30,11 @@
       <button id="octave-middle">Middle</button>
       <button id="octave-upper">Upper</button>
       <button id="btn-slur">Slur</button>
-       <select id="notation-select">
-    <option value="western">Western</option>
-    <option value="number">Number</option>
-    <option value="sargam">Sargam</option>
-  </select>
+      <select id="notation-select">
+        <option value="western">Western</option>
+        <option value="number">Number</option>
+        <option value="sargam">Sargam</option>
+      </select>
     </div>
     <canvas id="canvas" width="800" height="200"></canvas>
     <pre id="data-model"></pre>

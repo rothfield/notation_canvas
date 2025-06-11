@@ -1,5 +1,3 @@
-import { parseLineToLineWithBeats } from "./parseLineToLineWithBeats.js";
-import * as state from "./state.js";
 import { composition } from "./state.js";
 import { setupMouseEvents } from './input/mouse/index.js';
 import { handleClick } from "./input/handleClick.js";

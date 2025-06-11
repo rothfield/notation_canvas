@@ -1,15 +1,23 @@
 import * as selectionRenderer from "../canvas/selection-renderer.js";
-import * as octaveRenderer from "../canvas/octave-renderer.js";
-import { pitchCodeAndNotationToPitch } from "../models/notation-utils.js";
+import { drawNote } from "../canvas/drawNote.js";
 import { blink } from "../state.js";
-import { drawSyllable } from "../canvas/drawSyllable.js";
-
-function getCSSNumber(propName) {
-  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(propName).trim()) || 0;
-}
+import { pitchCodeAndNotationToPitch } from "../models/notation-utils.js";
 
 function getCSSValue(propName) {
   return getComputedStyle(document.documentElement).getPropertyValue(propName).trim();
+}
+
+function getCSSNumber(propName) {
+  return parseFloat(getCSSValue(propName)) || 0;
+}
+
+function drawCursor(ctx, x, yOffset, ascent, descent) {
+  ctx.beginPath();
+  ctx.moveTo(x - 1, yOffset - ascent);
+  ctx.lineTo(x - 1, yOffset + descent);
+  ctx.strokeStyle = "red";
+  ctx.lineWidth = 1;
+  ctx.stroke();
 }
 
 export function render(canvas, composition, ctx) {
@@ -18,21 +26,30 @@ export function render(canvas, composition, ctx) {
   const canvasFont = getCSSValue("--canvas-font");
   const lyricFont = getCSSValue("--lyric-font");
 
-  ctx.font = lyricFont;
+  const sampleMetrics = ctx.measureText("M");
+  const ascent = sampleMetrics.actualBoundingBoxAscent || 15;
+  const descent = sampleMetrics.actualBoundingBoxDescent || 5;
   const referenceMetrics = ctx.measureText("Mg");
   const refAscent = referenceMetrics.actualBoundingBoxAscent || 15;
   const refDescent = referenceMetrics.actualBoundingBoxDescent || 5;
-
   const yOffset = Math.floor(canvas.height / 2 + refAscent / 2);
-  const referenceTopY = yOffset - refAscent;
-  const globalUpperY = referenceTopY - 5;
+  const referenceTopY = yOffset - referenceMetrics.actualBoundingBoxAscent;
   const xOffset = 20;
 
-  const dotAbove = getCSSNumber("--octave-dot-above");
-  const dotBelow = getCSSNumber("--octave-dot-below");
-  const mordentAbove = getCSSNumber("--mordent-above");
-  const syllableBelow = getCSSNumber("--syllable-below");
-  const slurVerticalGap = getCSSNumber("--slur-vertical-gap");
+  const drawParams = {
+    canvasFont,
+    lyricFont,
+    ascent,
+    descent,
+    refAscent,
+    referenceTopY,
+    dotAbove: getCSSNumber("--octave-dot-above"),
+    dotBelow: getCSSNumber("--octave-dot-below"),
+    mordentAbove: getCSSNumber("--mordent-above"),
+    syllableBelow: getCSSNumber("--syllable-below"),
+    slurVerticalGap: getCSSNumber("--slur-vertical-gap"),
+    yOffset,
+  };
 
   const tokens = composition.lines[0].tokens;
   const { cursorIndex, selection } = composition;
@@ -42,84 +59,72 @@ export function render(canvas, composition, ctx) {
   let x = xOffset;
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
-    let text = token.text || "";
 
     if (token.type === "note") {
-      text = pitchCodeAndNotationToPitch(token.pitchCode, token.notation);
-    }
-    if (token.type === "unknown" || typeof text !== "string") continue;
-
-    ctx.font = canvasFont;
-    const metrics = ctx.measureText(text);
-    const width = Math.ceil(metrics.width) + 0.5;
-    const ascent = metrics.actualBoundingBoxAscent || refAscent;
-    const descent = metrics.actualBoundingBoxDescent || refDescent;
-
-    const isSelected = selection?.start !== null &&
-      selection?.end !== null &&
-      i >= Math.min(selection.start, selection.end) &&
-      i < Math.max(selection.start, selection.end);
-
-    if (isSelected) {
-      const top = yOffset - ascent - 15;
-      const bottom = yOffset + descent + 20;
-      ctx.fillStyle = "#0033cc";
-      ctx.fillRect(x - 2, top, width + 4, bottom - top);
-      ctx.fillStyle = "white";
+      x += drawNote(ctx, x, yOffset, token, drawParams);
     } else {
-      ctx.fillStyle = "black";
+      let text = token.text || "";
+      if (token.type === "unknown" || typeof text !== "string") continue;
+
+      ctx.font = canvasFont;
+      const metrics = ctx.measureText(text);
+      const width = Math.ceil(metrics.width) + 0.5;
+      const thisAscent = metrics.actualBoundingBoxAscent || refAscent;
+      const thisDescent = metrics.actualBoundingBoxDescent || refDescent;
+
+      const isSelected =
+        selection?.start !== null &&
+        selection?.end !== null &&
+        i >= Math.min(selection.start, selection.end) &&
+        i < Math.max(selection.start, selection.end);
+
+      if (isSelected) {
+        const top = yOffset - thisAscent - 15;
+        const bottom = yOffset + thisDescent + 20;
+        ctx.fillStyle = "#0033cc";
+        ctx.fillRect(x - 2, top, width + 4, bottom - top);
+        ctx.fillStyle = "white";
+      } else {
+        ctx.fillStyle = "black";
+      }
+
+      ctx.fillText(text, x, yOffset);
+
+      token.bbox = {
+        x,
+        y: yOffset - thisAscent - 15,
+        width,
+        height: thisAscent + thisDescent + 35,
+      };
+
+      x += width;
     }
-
-    if (blink.visible && cursorIndex === i) {
-      drawCursor(ctx, x, yOffset, ascent, descent);
-    }
-
-    ctx.fillText(text, x, yOffset);
-
-    if (token.octave === 1) {
-      const cx = x + width / 2;
-      octaveRenderer.renderUpper(ctx, cx, referenceTopY - 1, token);
-    } else if (token.octave === -1) {
-      const cx = x + width / 2;
-      octaveRenderer.renderLower(ctx, cx, yOffset, token);
-    }
-
-    if (token.mordent) {
-      const symbol = "~";
-      const w = ctx.measureText(symbol).width;
-      const symbolX = x + (width - w) / 2;
-      ctx.fillText(symbol, symbolX, globalUpperY - 2);
-    }
-
-    if (token.syllable) {
-      const syllableY = yOffset + descent + 3 + refAscent;
-      drawSyllable(ctx, x, syllableY, token.syllable, lyricFont);
-    }
-
-    token.bbox = {
-      x,
-      y: yOffset - ascent - 15,
-      width,
-      height: ascent + descent + 35
-    };
-
-    x += width;
   }
 
-  if (blink.visible && cursorIndex === tokens.length) {
-    drawCursor(ctx, x, yOffset, refAscent, refDescent);
+  // Cursor rendering (second pass)
+  if (blink.visible && cursorIndex !== null) {
+    let cursorX = null;
+
+    if (cursorIndex < tokens.length) {
+      const bbox = tokens[cursorIndex]?.bbox;
+      if (bbox) {
+        cursorX = bbox.x;
+      }
+    } else if (cursorIndex === tokens.length && tokens.length > 0) {
+      const last = tokens[tokens.length - 1].bbox;
+      if (last) {
+        cursorX = last.x + last.width;
+      }
+    } else if (tokens.length === 0) {
+      cursorX = xOffset;
+    }
+
+    if (cursorX !== null) {
+      drawCursor(ctx, cursorX, yOffset, refAscent, refDescent);
+    }
   }
 
-  renderSlurs(ctx, tokens, yOffset - refAscent - slurVerticalGap);
-}
-
-function drawCursor(ctx, x, yOffset, ascent, descent) {
-  ctx.beginPath();
-  ctx.moveTo(x - 1, yOffset - ascent - 15);
-  ctx.lineTo(x - 1, yOffset + descent + 20);
-  ctx.strokeStyle = "red";
-  ctx.lineWidth = 1;
-  ctx.stroke();
+  renderSlurs(ctx, tokens, yOffset - refAscent - getCSSNumber("--slur-vertical-gap"));
 }
 
 function renderSlurs(ctx, tokens, arcY) {

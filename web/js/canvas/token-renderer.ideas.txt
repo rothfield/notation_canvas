@@ -1,0 +1,35 @@
+// token-renderer.js
+
+export function drawToken(ctx, token, x, y) {
+  switch (token.type) {
+    case "note":
+      return drawNote(ctx, token, x, y);
+    case "barline":
+      return drawBarline(ctx, token, x, y);
+    case "space":
+      return drawSpace(ctx, token, x, y);
+    default:
+      return drawOtherToken(ctx, token, x, y);
+  }
+}
+
+function drawNote(ctx, token, x, y) {
+  const text = token.text;
+  ctx.fillText(text, x, y);
+  return ctx.measureText(text).width;
+}
+
+function drawBarline(ctx, token, x, y) {
+  ctx.fillText("|", x, y);
+  return ctx.measureText("|").width;
+}
+
+function drawSpace(ctx, token, x, y) {
+  return 12; // fixed width for space
+}
+
+function drawOtherToken(ctx, token, x, y) {
+  ctx.fillText(token.text, x, y);
+  return ctx.measureText(token.text).width;
+}
+

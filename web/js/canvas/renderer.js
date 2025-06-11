@@ -1,55 +1,32 @@
 import * as selectionRenderer from "../canvas/selection-renderer.js";
 import * as octaveRenderer from "../canvas/octave-renderer.js";
-import {pitchCodeAndNotationToPitch} from "../models/notation-utils.js";
-
-// canvas/composition.js
-function drawBravuraSymbol(ctx, glyph, x, y) {
-  ctx.save();
-  ctx.font = "20px Bravura";
-  ctx.fillText(glyph, x, y);
-  ctx.restore();
-}
+import { pitchCodeAndNotationToPitch } from "../models/notation-utils.js";
 import { blink } from "../state.js";
+import { drawSyllable } from "../canvas/drawSyllable.js";
 
-// Utility to read CSS variable as string or number
+function getCSSNumber(propName) {
+  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(propName).trim()) || 0;
+}
+
 function getCSSValue(propName) {
   return getComputedStyle(document.documentElement).getPropertyValue(propName).trim();
 }
 
-function getCSSNumber(propName) {
-  return parseFloat(getCSSValue(propName)) || 0;
-}
-
-export function render(canvas, composition) {
-  const ctx = canvas.getContext("2d");
+export function render(canvas, composition, ctx) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  //  const lyricFont = getCSSValue("--lyric-font");
-  const titleFont = getCSSValue("--title-font");
-  const composerFont = getCSSValue("--composer-font");
-  const canvasFont = getComputedStyle(document.documentElement)
-  .getPropertyValue("--canvas-font")
-  .trim();
+  const canvasFont = getCSSValue("--canvas-font");
   const lyricFont = getCSSValue("--lyric-font");
 
-  ctx.font = canvasFont;
-  ctx.font = canvasFont;
-
   ctx.font = lyricFont;
-  const sampleMetrics = ctx.measureText("M");
-  const ascent = sampleMetrics.actualBoundingBoxAscent || 15;
-  const descent = sampleMetrics.actualBoundingBoxDescent || 5;
   const referenceMetrics = ctx.measureText("Mg");
-const refAscent = referenceMetrics.actualBoundingBoxAscent || 15;
-const yOffset = Math.floor(canvas.height / 2 + refAscent / 2);
-  const referenceTopY = yOffset - referenceMetrics.actualBoundingBoxAscent;  // ← this line
-  const globalUpperY = yOffset - refAscent - 5;
-  const xOffset = 20;
-  
-  let x = xOffset;
+  const refAscent = referenceMetrics.actualBoundingBoxAscent || 15;
+  const refDescent = referenceMetrics.actualBoundingBoxDescent || 5;
 
-  const tokens = composition.lines[0].tokens;
-  const { cursorIndex, selection } = composition;
+  const yOffset = Math.floor(canvas.height / 2 + refAscent / 2);
+  const referenceTopY = yOffset - refAscent;
+  const globalUpperY = referenceTopY - 5;
+  const xOffset = 20;
 
   const dotAbove = getCSSNumber("--octave-dot-above");
   const dotBelow = getCSSNumber("--octave-dot-below");
@@ -57,39 +34,26 @@ const yOffset = Math.floor(canvas.height / 2 + refAscent / 2);
   const syllableBelow = getCSSNumber("--syllable-below");
   const slurVerticalGap = getCSSNumber("--slur-vertical-gap");
 
+  const tokens = composition.lines[0].tokens;
+  const { cursorIndex, selection } = composition;
 
-selectionRenderer.render(ctx, tokens, selection);
+  selectionRenderer.render(ctx, tokens, selection);
 
+  let x = xOffset;
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
-    let text = ""
-    text = token.text || "";
-    if (token.type === 'note') {
-       text  = pitchCodeAndNotationToPitch(token.pitchCode,token.notation);
-      console.log("pitchCodeAndNotationToPitch",token.pitchCode," ",token.notation," returns",text)
-       console.log("getNoteText returns ", text)
+    let text = token.text || "";
+
+    if (token.type === "note") {
+      text = pitchCodeAndNotationToPitch(token.pitchCode, token.notation);
     }
-    if (token.type === "unknown") continue;
-    if (typeof text !== "string") continue;
+    if (token.type === "unknown" || typeof text !== "string") continue;
 
     ctx.font = canvasFont;
-  ctx.font = canvasFont;
-
-  ctx.font = lyricFont;
-  const lyricMetrics = ctx.measureText("Mg");
-  const lyricAscent = lyricMetrics.actualBoundingBoxAscent || 12;
-  const lyricDescent = lyricMetrics.actualBoundingBoxDescent || 4;
-  const lyricHeight = lyricAscent + lyricDescent;
-
     const metrics = ctx.measureText(text);
     const width = Math.ceil(metrics.width) + 0.5;
-    const tokenAscent = metrics.actualBoundingBoxAscent || ascent;
-    const tokenDescent = metrics.actualBoundingBoxDescent || descent;
-    const height = tokenAscent + tokenDescent;
-    let highlightTop = yOffset - tokenAscent;
-    let highlightBottom = yOffset + tokenDescent;
-    highlightTop -= 15;
-    highlightBottom += 20;
+    const ascent = metrics.actualBoundingBoxAscent || refAscent;
+    const descent = metrics.actualBoundingBoxDescent || refDescent;
 
     const isSelected = selection?.start !== null &&
       selection?.end !== null &&
@@ -97,88 +61,79 @@ selectionRenderer.render(ctx, tokens, selection);
       i < Math.max(selection.start, selection.end);
 
     if (isSelected) {
+      const top = yOffset - ascent - 15;
+      const bottom = yOffset + descent + 20;
       ctx.fillStyle = "#0033cc";
-      ctx.fillRect(x - 2, highlightTop, width + 4, highlightBottom - highlightTop);
+      ctx.fillRect(x - 2, top, width + 4, bottom - top);
       ctx.fillStyle = "white";
     } else {
       ctx.fillStyle = "black";
     }
 
     if (blink.visible && cursorIndex === i) {
-      const cursorTop = yOffset - tokenAscent - 15;
-      const cursorBottom = yOffset + tokenDescent + 20;
-      ctx.beginPath();
-      ctx.moveTo(x - 1, cursorTop);
-      ctx.lineTo(x - 1, cursorBottom);
-      ctx.strokeStyle = "red";
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      drawCursor(ctx, x, yOffset, ascent, descent);
     }
 
     ctx.fillText(text, x, yOffset);
-    const pitchWidth = width;
 
     if (token.octave === 1) {
-      const centerX = x + pitchWidth / 2;
-      octaveRenderer.renderUpper(ctx, centerX, referenceTopY - 1, token);
-    }
-
-    if (token.octave === -1) {
-       const centerX = x + ctx.measureText(token.text).width / 2;
-      octaveRenderer.renderLower(ctx, centerX, yOffset, token);
+      const cx = x + width / 2;
+      octaveRenderer.renderUpper(ctx, cx, referenceTopY - 1, token);
+    } else if (token.octave === -1) {
+      const cx = x + width / 2;
+      octaveRenderer.renderLower(ctx, cx, yOffset, token);
     }
 
     if (token.mordent) {
       const symbol = "~";
-      const symbolWidth = ctx.measureText(symbol).width;
-      const symbolX = x + (pitchWidth - symbolWidth) / 2;
-      ctx.fillText(symbol, symbolX, refTopY - 2);
+      const w = ctx.measureText(symbol).width;
+      const symbolX = x + (width - w) / 2;
+      ctx.fillText(symbol, symbolX, globalUpperY - 2);
     }
 
     if (token.syllable) {
-      ctx.font = lyricFont;
-      const syll = token.syllable;
-      const textX = x;
-      const syllableY = yOffset + descent + 3 + lyricAscent;
-      ctx.fillText(syll, textX, syllableY);
+      const syllableY = yOffset + descent + 3 + refAscent;
+      drawSyllable(ctx, x, syllableY, token.syllable, lyricFont);
     }
 
-    const fullTop = yOffset - tokenAscent - 15;
-    const fullBottom = yOffset + tokenDescent + 20;
     token.bbox = {
       x,
-      y: fullTop,
+      y: yOffset - ascent - 15,
       width,
-      height: fullBottom - fullTop,
+      height: ascent + descent + 35
     };
 
     x += width;
   }
 
   if (blink.visible && cursorIndex === tokens.length) {
-    ctx.beginPath();
-    ctx.moveTo(x - 1, yOffset - ascent);
-    ctx.lineTo(x - 1, yOffset + descent);
-    ctx.strokeStyle = "red";
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    drawCursor(ctx, x, yOffset, refAscent, refDescent);
   }
 
+  renderSlurs(ctx, tokens, yOffset - refAscent - slurVerticalGap);
+}
+
+function drawCursor(ctx, x, yOffset, ascent, descent) {
+  ctx.beginPath();
+  ctx.moveTo(x - 1, yOffset - ascent - 15);
+  ctx.lineTo(x - 1, yOffset + descent + 20);
+  ctx.strokeStyle = "red";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+function renderSlurs(ctx, tokens, arcY) {
   let slurStartX = null;
   let slurEndX = null;
 
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
-    if (token.type === "leftSlur") {
-      const next = tokens[i + 1];
-      if (next?.bbox) slurStartX = next.bbox.x;
+    if (token.type === "leftSlur" && tokens[i + 1]?.bbox) {
+      slurStartX = tokens[i + 1].bbox.x;
     }
-    if (token.type === "rightSlur") {
-      const prev = tokens[i - 1];
-      if (prev?.bbox) slurEndX = prev.bbox.x + prev.bbox.width;
-
+    if (token.type === "rightSlur" && tokens[i - 1]?.bbox) {
+      slurEndX = tokens[i - 1].bbox.x + tokens[i - 1].bbox.width;
       if (slurStartX !== null && slurEndX !== null) {
-        const arcY = yOffset - ascent - slurVerticalGap;
         const midX = (slurStartX + slurEndX) / 2;
         ctx.beginPath();
         ctx.moveTo(slurStartX, arcY);
@@ -187,9 +142,9 @@ selectionRenderer.render(ctx, tokens, selection);
         ctx.lineWidth = 1.2;
         ctx.stroke();
       }
-
       slurStartX = null;
       slurEndX = null;
     }
   }
 }
+
